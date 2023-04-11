@@ -1,4 +1,5 @@
 const router = require("express").Router();
+const { constants } = require("../constants");
 const User = require("../models/User");
 const bcrypt = require("bcrypt")
 
@@ -8,13 +9,19 @@ router.post("/register", async (req,res)=>{
         // check if email is valid
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(req.body.email)) {
-            return res.status(400).json("Email is not valid" );
+            return res.status(constants.VALIDATION_ERROR).json("Email is not valid" );
         }
 
         // check if user already exists
         const userExists = await User.findOne({ email: req.body.email });
         if (userExists) {
-            return res.status(409).json("User already registered");
+            return res.status(constants.CONFLICT_ERROR).json("User already registered");
+        }
+
+        // check if password meets minimum length requirement
+        const passwordMinLength = 6;
+        if (req.body.password.length < passwordMinLength) {
+            return res.status(constants.VALIDATION_ERROR).json(`Password must be at least ${passwordMinLength} characters long`);
         }
       
         // generate new password
@@ -30,9 +37,9 @@ router.post("/register", async (req,res)=>{
 
         // save user and respond
         const user = await newUser.save();
-        res.status(200).json(user); 
+        res.status(constants.SUCCESSFULL_REQUEST).json(user); 
     }catch(err){
-        res.status(500).json(err);
+        res.status(constants.SERVER_ERROR).json(err);
     }
 });
 
@@ -42,16 +49,16 @@ router.post("/login", async (req,res)=>{
         // check if email is valid
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(req.body.email)) {
-            return res.status(400).json("Email is not valid" );
+            return res.status(constants.VALIDATION_ERROR).json("Email is not valid" );
         }
 
         const user = await User.findOne({email: req.body.email});
-        !user && res.status(404).json("user not found")
+        !user && res.status(constants.NOT_FOUND).json("user not found")
 
         const validPassword = await bcrypt.compare(req.body.password, user.password)
-        !validPassword && res.status(400).json("wrong password")
+        !validPassword && res.status(constants.VALIDATION_ERROR).json("wrong password")
 
-        res.status(200).json(user)
+        res.status(constants.SUCCESSFULL_REQUEST).json(user)
     }catch(err){
         return (err)
     }
