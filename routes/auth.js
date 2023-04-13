@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const { constants } = require("../constants");
 const User = require("../models/User");
-const bcrypt = require("bcrypt")
+const bcrypt = require("bcrypt");
 
 // Register
 router.post("/register", async (req,res)=>{
@@ -53,15 +53,15 @@ router.post("/login", async (req,res)=>{
         }
 
         const user = await User.findOne({email: req.body.email});
-        !user && res.status(constants.NOT_FOUND).json("user not found")
+        !user && res.status(constants.NOT_FOUND).json("user not found");
 
-        const validPassword = await bcrypt.compare(req.body.password, user.password)
-        !validPassword && res.status(constants.VALIDATION_ERROR).json("wrong password")
+        const validPassword = await bcrypt.compare(req.body.password, user.password);
+        !validPassword && res.status(constants.VALIDATION_ERROR).json("wrong password");
 
-        res.status(constants.SUCCESSFULL_REQUEST).json(user)
+        res.status(constants.SUCCESSFULL_REQUEST).json(user);
     }catch(err){
-        return (err)
+        return (err);
     }
-})
+});
 
 module.exports = router;
